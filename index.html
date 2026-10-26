@@ -1,0 +1,556 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>書き納め</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: one-screen tool. Heading, a 3:4 sheet of paper filling the middle, two actions at the thumb. */
+:root{
+  --bg:#ECEDF1;
+  --paper:#FFFFFF;
+  --ink:#15161A;
+  --sub:#6B6E78;
+  --faint:#B4B7C0;
+  --accent:#0000D5;
+  --accent-ink:#FFFFFF;
+  --f-display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  color-scheme: light;
+}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--f-body);
+  overflow:hidden;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.app{
+  height:100%;box-sizing:border-box;max-width:520px;margin:0 auto;
+  display:flex;flex-direction:column;gap:14px;
+  padding-block:18px 16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.app > header, .app > .actions{transition:opacity .4s}
+.app.busy > header, .app.busy > .actions{opacity:.18}
+header{display:grid;gap:8px}
+.eyebrow{font-size:11px;letter-spacing:.2em;color:var(--sub);font-weight:500}
+h1{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.1;margin:0;letter-spacing:.08em;text-wrap:balance}
+.lead{margin:0;font-size:14px;line-height:1.7}
+.lead small{display:block;color:var(--sub);font-size:12px;line-height:1.6}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.sheet{position:relative;background:var(--paper);box-shadow:0 1px 0 rgba(21,22,26,.05),0 14px 30px -16px rgba(21,22,26,.35)}
+#paper{display:block;touch-action:none;cursor:crosshair}
+.hint{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:var(--faint);font-size:13px;letter-spacing:.2em;transition:opacity .25s}
+.actions{display:grid;grid-template-columns:1fr 1.6fr;gap:10px}
+button{
+  font:inherit;font-weight:500;font-size:15px;letter-spacing:.1em;
+  height:52px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--ink);background:transparent;color:var(--ink);
+  transition:transform .12s, opacity .2s;
+}
+button:active{transform:scale(.97)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:disabled{opacity:.28;cursor:default;transform:none}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:20;pointer-events:none}
+
+.done{
+  position:fixed;inset:0;z-index:30;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;
+  padding-block:calc(24px + env(safe-area-inset-top,0px)) calc(24px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  animation:fade .5s ease both;
+}
+.stamp{
+  width:96px;height:96px;border-radius:50%;border:3px solid var(--accent);color:var(--accent);
+  display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:48px;line-height:1;
+  transform:rotate(-8deg);animation:stamp .45s cubic-bezier(.2,1.4,.4,1) .15s both;
+}
+.done h2{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:.12em;margin:0}
+.done p{margin:0;font-size:13px;line-height:1.8;color:var(--sub)}
+.done button{width:min(280px,100%)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes stamp{from{opacity:0;transform:rotate(-8deg) scale(1.9)}to{opacity:1;transform:rotate(-8deg) scale(1)}}
+@media (prefers-reduced-motion: reduce){
+  .done,.stamp{animation:none}
+}
+</style>
+
+<div class="app" id="app">
+  <header>
+    <div class="eyebrow">忘年会 2026</div>
+    <h1>書き納め</h1>
+    <p class="lead">今年に置いていくものを、指でひとつ書いてください。
+      <small>口癖、悪い習慣、ボツになった企画など。書いたものはどこにも保存されません。</small>
+    </p>
+  </header>
+  <div class="stage" id="stage">
+    <div class="sheet" id="sheet">
+      <canvas id="paper" aria-label="書く紙"></canvas>
+      <div class="hint" id="hint">ここに指で書く</div>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="clear" type="button" disabled>書き直す</button>
+    <button id="shred" class="primary" type="button" disabled>納める</button>
+  </div>
+</div>
+<canvas id="fx" hidden></canvas>
+<div class="done" id="done" hidden>
+  <div class="stamp" aria-hidden="true">納</div>
+  <h2>納めました</h2>
+  <p>令和八年に、置いていきました。<br>書いたものは、もうどこにも残っていません。</p>
+  <button id="again" type="button">もう一枚納める</button>
+</div>
+
+<script>
+(() => {
+  const INK = '#15161A';
+  const app = document.getElementById('app');
+  const stage = document.getElementById('stage');
+  const sheet = document.getElementById('sheet');
+  const paper = document.getElementById('paper');
+  const hint = document.getElementById('hint');
+  const btnClear = document.getElementById('clear');
+  const btnShred = document.getElementById('shred');
+  const fx = document.getElementById('fx');
+  const done = document.getElementById('done');
+  const btnAgain = document.getElementById('again');
+  const pctx = paper.getContext('2d');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+
+  let W = 0, H = 0;           // paper size in css px
+  let strokes = [];            // each stroke: [{x,y,w}] normalized by W, w = diameter
+  let cur = null;
+  let busy = false;
+
+  /* ---------- paper ---------- */
+  function layout() {
+    const r = stage.getBoundingClientRect();
+    const w = Math.floor(Math.min(r.width, r.height * 0.75));
+    const h = Math.floor(w / 0.75);
+    if (w <= 0) return;
+    W = w; H = h;
+    sheet.style.width = w + 'px'; sheet.style.height = h + 'px';
+    paper.style.width = w + 'px'; paper.style.height = h + 'px';
+    paper.width = Math.round(w * dpr); paper.height = Math.round(h * dpr);
+    render();
+  }
+
+  function drawPrinted() {
+    pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    pctx.fillStyle = '#FFFFFF';
+    pctx.fillRect(0, 0, W, H);
+    // thin printed frame
+    const m = Math.round(W * 0.045);
+    pctx.strokeStyle = '#E3E5EA';
+    pctx.lineWidth = 1;
+    pctx.strokeRect(m + .5, m + .5, W - 2 * m - 1, H - 2 * m - 1);
+    // vertical label, top right
+    const size = Math.max(10, Math.round(W * 0.036));
+    pctx.fillStyle = '#9A9DA6';
+    pctx.font = `500 ${size}px "Shippori Mincho", "Hiragino Mincho ProN", serif`;
+    pctx.textAlign = 'center';
+    pctx.textBaseline = 'top';
+    const x = W - m - size * 1.1;
+    let y = m + size * 0.9;
+    for (const ch of '令和八年　丙午') {
+      if (ch === '　') { y += size * 0.7; continue; }
+      pctx.fillText(ch, x, y);
+      y += size * 1.18;
+    }
+  }
+
+  function dab(x, y, r) {
+    pctx.beginPath();
+    pctx.arc(x, y, Math.max(r, 0.4), 0, Math.PI * 2);
+    pctx.fill();
+  }
+
+  function seg(a, b) {
+    const ax = a.x * W, ay = a.y * W, bx = b.x * W, by = b.y * W;
+    const aw = a.w * W, bw = b.w * W;
+    const d = Math.hypot(bx - ax, by - ay);
+    const step = Math.max(0.6, Math.min(aw, bw) * 0.22);
+    const n = Math.max(1, Math.ceil(d / step));
+    for (let i = 1; i <= n; i++) {
+      const t = i / n;
+      dab(ax + (bx - ax) * t, ay + (by - ay) * t, (aw + (bw - aw) * t) / 2);
+    }
+  }
+
+  function render() {
+    drawPrinted();
+    pctx.fillStyle = INK;
+    for (const s of strokes) {
+      if (!s.length) continue;
+      dab(s[0].x * W, s[0].y * W, s[0].w * W / 2);
+      for (let i = 1; i < s.length; i++) seg(s[i - 1], s[i]);
+    }
+  }
+
+  function setDirty(on) {
+    hint.style.opacity = on ? 0 : 1;
+    btnClear.disabled = !on || busy;
+    btnShred.disabled = !on || busy;
+  }
+
+  /* ---------- brush ---------- */
+  const BASE = 0.042; // brush diameter relative to paper width
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  function pos(e) {
+    const r = paper.getBoundingClientRect();
+    return { x: (e.clientX - r.left) / W, y: (e.clientY - r.top) / W };
+  }
+
+  paper.addEventListener('pointerdown', e => {
+    if (busy) return;
+    e.preventDefault();
+    paper.setPointerCapture(e.pointerId);
+    const p = pos(e);
+    const first = { x: p.x, y: p.y, w: BASE * 0.6 };
+    cur = { pts: [first], t: e.timeStamp, v: 0 };
+    strokes.push(cur.pts);
+    pctx.fillStyle = INK;
+    dab(first.x * W, first.y * W, first.w * W / 2);
+    setDirty(true);
+  });
+
+  function addPoint(e) {
+    const p = pos(e);
+    const last = cur.pts[cur.pts.length - 1];
+    const dt = Math.max(1, e.timeStamp - cur.t);
+    const distPx = Math.hypot((p.x - last.x) * W, (p.y - last.y) * W);
+    if (distPx < 0.8) return;
+    cur.t = e.timeStamp;
+    cur.v = cur.v * 0.6 + (distPx / dt) * 0.4; // px per ms
+    let target;
+    if (e.pointerType === 'pen' && e.pressure > 0) {
+      target = BASE * (0.3 + e.pressure * 1.1);
+    } else {
+      target = BASE * clamp(1.2 - cur.v * 0.45, 0.3, 1.2);
+    }
+    const next = {
+      x: last.x + (p.x - last.x) * 0.65,
+      y: last.y + (p.y - last.y) * 0.65,
+      w: last.w + (target - last.w) * 0.22,
+    };
+    cur.pts.push(next);
+    pctx.fillStyle = INK;
+    seg(last, next);
+  }
+
+  paper.addEventListener('pointermove', e => {
+    if (!cur) return;
+    const list = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of (list.length ? list : [e])) addPoint(ev);
+  });
+
+  function endStroke() {
+    if (!cur) return;
+    const pts = cur.pts;
+    // はらい: a fast stroke tapers off in its direction of travel
+    if (pts.length > 2 && cur.v > 0.3) {
+      let a = pts[pts.length - 2], b = pts[pts.length - 1];
+      const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      const dx = (b.x - a.x) / len, dy = (b.y - a.y) / len;
+      const reach = Math.min(cur.v * 9, 26) / W;
+      pctx.fillStyle = INK;
+      for (const k of [0.6, 0.35, 0.15]) {
+        const prev = pts[pts.length - 1];
+        const n = { x: prev.x + dx * reach / 3, y: prev.y + dy * reach / 3, w: b.w * k };
+        pts.push(n);
+        seg(prev, n);
+      }
+    }
+    cur = null;
+  }
+  paper.addEventListener('pointerup', endStroke);
+  paper.addEventListener('pointercancel', endStroke);
+
+  btnClear.addEventListener('click', () => {
+    strokes = [];
+    render();
+    setDirty(false);
+  });
+
+  /* ---------- sound ---------- */
+  let actx = null;
+  function audio() {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();
+    } catch (e) { actx = null; }
+    return actx;
+  }
+
+  function playShred(delayMs, durMs) {
+    const a = audio();
+    if (!a) return;
+    try {
+      const t0 = a.currentTime + delayMs / 1000;
+      const t1 = t0 + durMs / 1000;
+      const buf = a.createBuffer(1, a.sampleRate, a.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+      const out = a.createGain();
+      out.gain.value = 0.9;
+      out.connect(a.destination);
+
+      // paper being cut: band-passed noise with a crackling envelope
+      const noise = a.createBufferSource();
+      noise.buffer = buf; noise.loop = true;
+      const bp = a.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = 0.6;
+      const ng = a.createGain();
+      ng.gain.setValueAtTime(0, t0);
+      let t = t0 + 0.05;
+      while (t < t1 - 0.08) {
+        ng.gain.setValueAtTime(0.08 + Math.random() * 0.22, t);
+        t += 0.025 + Math.random() * 0.045;
+      }
+      ng.gain.setValueAtTime(0.15, t1 - 0.08);
+      ng.gain.linearRampToValueAtTime(0, t1);
+      noise.connect(bp).connect(ng).connect(out);
+
+      // motor hum
+      const osc = a.createOscillator();
+      osc.type = 'sawtooth'; osc.frequency.value = 74;
+      const lp = a.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 340;
+      const og = a.createGain();
+      og.gain.setValueAtTime(0, t0 - 0.15);
+      og.gain.linearRampToValueAtTime(0.13, t0);
+      og.gain.setValueAtTime(0.13, t1);
+      og.gain.linearRampToValueAtTime(0, t1 + 0.25);
+      osc.connect(lp).connect(og).connect(out);
+
+      noise.start(t0); noise.stop(t1 + 0.05);
+      osc.start(t0 - 0.15); osc.stop(t1 + 0.3);
+    } catch (e) { /* sound is optional */ }
+  }
+
+  /* ---------- shredder ---------- */
+  const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
+  function shred() {
+    if (busy || !strokes.length) return;
+    busy = true;
+    setDirty(true);
+    app.classList.add('busy');
+
+    const from = sheet.getBoundingClientRect();
+    const snap = document.createElement('canvas');
+    snap.width = paper.width; snap.height = paper.height;
+    snap.getContext('2d').drawImage(paper, 0, 0);
+    sheet.style.visibility = 'hidden';
+    strokes = [];
+
+    if (reduced) {
+      setTimeout(showDone, 300);
+      return;
+    }
+
+    const VW = window.innerWidth, VH = window.innerHeight;
+    fx.width = Math.round(VW * dpr); fx.height = Math.round(VH * dpr);
+    fx.hidden = false;
+    const c = fx.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // geometry
+    const S = Math.round(VH * 0.48);                 // the slit
+    const pw = Math.min(VW * 0.62, 290, (S - 40) * 0.75);
+    const ph = pw / 0.75;
+    const px = (VW - pw) / 2;
+    const bw = pw + 48, bx = (VW - bw) / 2;
+    const bodyTop = S - 12, bodyBottom = S + 56;
+
+    const N = 18;
+    const sw = snap.width / N;
+    const dw = pw / N;
+    const strips = Array.from({ length: N }, (_, i) => ({
+      i,
+      rot0: (Math.random() - 0.5) * 0.09,
+      phase: Math.random() * Math.PI * 2,
+      delay: Math.random() * 380,
+      y: 0, vy: 0, x: 0, vx: (Math.random() - 0.5) * 0.06,
+      rot: 0, vr: (Math.random() - 0.5) * 0.0022,
+    }));
+
+    const T_MOVE = 650, T_FEED0 = 850, T_FEED = 2400, T_DROP0 = T_FEED0 + T_FEED;
+    const T_END = T_DROP0 + 1900;
+
+    playShred(T_FEED0 - 60, T_FEED + 80);
+    if (navigator.vibrate) {
+      setTimeout(() => {
+        const pattern = [];
+        for (let k = 0; k < 26; k++) pattern.push(k % 2 ? 35 : 55);
+        try { navigator.vibrate(pattern); } catch (e) {}
+      }, T_FEED0);
+    }
+
+    const start = performance.now();
+    let lastNow = start;
+
+    function drawBody(alpha, lift, now) {
+      c.save();
+      c.globalAlpha = alpha;
+      c.translate(0, lift);
+      // top surface + slit
+      c.fillStyle = '#CDD0D7';
+      roundRect(c, bx, bodyTop, bw, 18, 6); c.fill();
+      c.fillStyle = '#17181C';
+      c.fillRect(px - 6, S - 1.5, pw + 12, 3);
+      c.restore();
+    }
+    function drawFront(alpha, lift, now, running) {
+      c.save();
+      c.globalAlpha = alpha;
+      c.translate(0, lift);
+      c.fillStyle = '#DADCE2';
+      roundRect(c, bx, S + 3, bw, bodyBottom - S - 3, 8); c.fill();
+      c.fillStyle = 'rgba(21,22,26,.06)';
+      c.fillRect(bx + 8, bodyBottom - 6, bw - 16, 2);
+      // label
+      c.fillStyle = '#7C7F89';
+      c.font = '500 11px "Zen Kaku Gothic New", system-ui, sans-serif';
+      c.textAlign = 'left'; c.textBaseline = 'middle';
+      c.fillText('納 め 機', bx + 16, (S + bodyBottom) / 2 + 1);
+      c.textAlign = 'right';
+      c.font = '500 10px "Zen Kaku Gothic New", system-ui, sans-serif';
+      c.fillText('2026', bx + bw - 34, (S + bodyBottom) / 2 + 1);
+      // LED
+      const on = running ? (Math.sin(now * 0.025) > -0.3) : true;
+      c.fillStyle = on ? '#0000D5' : '#9FA3D9';
+      c.beginPath(); c.arc(bx + bw - 18, (S + bodyBottom) / 2 + 1, 4, 0, Math.PI * 2); c.fill();
+      c.restore();
+    }
+
+    function drawStrip(st, f, t, dropT) {
+      const srcY = (ph - f) / ph * snap.height;
+      const srcH = Math.max(1, f / ph * snap.height);
+      const spread = 3 * Math.min(1, f / 60);
+      const baseX = px + st.i * dw + (st.i - (N - 1) / 2) * spread;
+      const sway = Math.sin(t * 0.005 + st.phase) * 0.014 * Math.min(1, f / 120);
+      const ang = st.rot0 * Math.min(1, f / ph) + sway + st.rot;
+      c.save();
+      c.translate(baseX + dw / 2 + st.x, bodyBottom - 4 + st.y);
+      c.rotate(ang);
+      c.drawImage(snap, st.i * sw, srcY, sw, srcH, -dw / 2, 0, dw, f);
+      c.strokeStyle = 'rgba(21,22,26,.09)';
+      c.lineWidth = 0.6;
+      c.strokeRect(-dw / 2, 0, dw, f);
+      c.restore();
+    }
+
+    function frame(now) {
+      const t = now - start;
+      const dt = Math.min(40, now - lastNow);
+      lastNow = now;
+      c.clearRect(0, 0, VW, VH);
+
+      // shredder appears
+      const bodyIn = clamp((t - 150) / 500, 0, 1);
+      const lift = (1 - ease(bodyIn)) * 40;
+      const running = t >= T_FEED0 && t < T_DROP0;
+
+      // feed amount
+      const feedP = clamp((t - T_FEED0) / T_FEED, 0, 1);
+      const f = ph * feedP;
+
+      // strips (behind the front panel)
+      if (f > 0) {
+        for (const st of strips) {
+          if (t > T_DROP0 + st.delay) {
+            st.vy += 0.0022 * dt;
+            st.y += st.vy * dt;
+            st.x += st.vx * dt;
+            st.rot += st.vr * dt;
+          }
+          if (bodyBottom + st.y < VH + 20) drawStrip(st, f, t);
+        }
+      }
+
+      drawBody(ease(bodyIn), lift, now);
+
+      // the sheet of paper
+      if (t < T_MOVE) {
+        const k = ease(clamp(t / T_MOVE, 0, 1));
+        const x = from.left + (px - from.left) * k;
+        const y = from.top + ((S - ph) - from.top) * k;
+        const w = from.width + (pw - from.width) * k;
+        const h = from.height + (ph - from.height) * k;
+        c.save();
+        c.shadowColor = 'rgba(21,22,26,.22)'; c.shadowBlur = 24; c.shadowOffsetY = 10;
+        c.drawImage(snap, x, y, w, h);
+        c.restore();
+      } else if (f < ph) {
+        const visible = ph - f;
+        c.save();
+        c.shadowColor = 'rgba(21,22,26,.18)'; c.shadowBlur = 18; c.shadowOffsetY = 6;
+        c.drawImage(snap, 0, 0, snap.width, visible / ph * snap.height, px, S - visible, pw, visible);
+        c.restore();
+      }
+
+      drawFront(ease(bodyIn), lift, now, running);
+
+      // fade the machine out at the end
+      if (t > T_END - 500) {
+        const k = clamp((t - (T_END - 500)) / 500, 0, 1);
+        c.save();
+        c.globalAlpha = k;
+        c.fillStyle = '#ECEDF1';
+        c.fillRect(0, 0, VW, VH);
+        c.restore();
+      }
+
+      if (t < T_END) requestAnimationFrame(frame);
+      else showDone();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function showDone() {
+    fx.hidden = true;
+    done.hidden = false;
+    btnAgain.focus({ preventScroll: true });
+  }
+
+  btnAgain.addEventListener('click', () => {
+    done.hidden = true;
+    app.classList.remove('busy');
+    sheet.style.visibility = '';
+    busy = false;
+    layout();
+    setDirty(false);
+  });
+
+  btnShred.addEventListener('click', () => {
+    audio(); // unlock audio inside the tap
+    shred();
+  });
+
+  window.addEventListener('resize', () => { if (!busy) layout(); });
+  layout();
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('500 16px "Shippori Mincho"').then(() => { if (!busy) render(); }).catch(() => {});
+  }
+})();
+</script>
+
+</body></html>
